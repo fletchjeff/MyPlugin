@@ -20,6 +20,13 @@
       "tags": [
         "VCO"
       ]
+    }, {
+      "slug": "MyModule_2",
+      "name": "MyModule_2",
+      "description": "Overdrive",
+      "tags": [
+        "Effect"
+      ]
     }
   ]
 }
