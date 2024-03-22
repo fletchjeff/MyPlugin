@@ -18,24 +18,58 @@ struct MyModule_2 : Module {
 		LIGHTS_LEN
 	};
 
+	//double time = 0.0;
+	//dsp::BooleanTrigger resetParamTrigger;
+	//dsp::ClockDivider lightDivider;
+	// uint32_t clock_out; 
+	bool last_state = false;
+	// bool flipFlop(bool input, bool &state) {
+	// 	bool output = state;
+	// 	state = input;
+	// 	return output;
+	// }
+
 	MyModule_2() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(OVERDRIVE_AMOUNT_PARAM, 0.f, 1.f, 0.f, "");
 		configInput(AUDIO_IN_INPUT, "");
 		configOutput(AUDIO_OUT_OUTPUT, "");
+		//lightDivider.setDivision(2);
 	}
 
 	void process(const ProcessArgs& args) override {
 		float out = 0.f;
+		float sub_out = 0.f;
 		float in = inputs[AUDIO_IN_INPUT].getVoltage();
-		if (in >= 0.f) {
+
+		// creates the square wave out
+		if (in > 0) {
 			out = 4.f;
-		}
-		else {
+		} else {
 			out = -4.f;
 		}
-		//float out = in * params[OVERDRIVE_AMOUNT_PARAM].getValue();
-		outputs[AUDIO_OUT_OUTPUT].setVoltage(out);
+
+		// creates the square wave sub_out
+		if (in > 0 && last_state == false) {
+			sub_out = 4.f;
+			last_state = true;
+		} else if (in > 0 && last_state == true) {
+			sub_out = -4.f;
+			last_state = false;
+		} else if (in <= 0 && last_state == true) {
+			sub_out = 4.f;
+		} else if (in <= 0 && last_state == false){
+		 	sub_out = -4.f;	
+		}
+
+
+		if (params[OVERDRIVE_AMOUNT_PARAM].getValue() > 0.5) {
+			outputs[AUDIO_OUT_OUTPUT].setVoltage(out);
+		} else {
+			outputs[AUDIO_OUT_OUTPUT].setVoltage(sub_out);
+		}
+		
+
 	}
 };
 
