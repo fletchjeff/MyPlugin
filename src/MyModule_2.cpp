@@ -1,5 +1,8 @@
 #include "plugin.hpp"
+#include "daisy/daisysp.h"
+#include "daisy/Effects/overdrive.h"
 
+// using namespace daisysp;
 
 struct MyModule_2 : Module {
 	enum ParamId {
@@ -18,11 +21,16 @@ struct MyModule_2 : Module {
 		LIGHTS_LEN
 	};
 
+	daisysp::Overdrive od;
+
 	//double time = 0.0;
 	//dsp::BooleanTrigger resetParamTrigger;
 	//dsp::ClockDivider lightDivider;
 	// uint32_t clock_out; 
-	bool last_state = false;
+	bool audio_state = false;
+	bool audio_state_prev = false;
+	bool sub_state = false;
+	bool sub_state_prev = false;
 	// bool flipFlop(bool input, bool &state) {
 	// 	bool output = state;
 	// 	state = input;
@@ -34,6 +42,7 @@ struct MyModule_2 : Module {
 		configParam(OVERDRIVE_AMOUNT_PARAM, 0.f, 1.f, 0.f, "");
 		configInput(AUDIO_IN_INPUT, "");
 		configOutput(AUDIO_OUT_OUTPUT, "");
+		od.Init();
 		//lightDivider.setDivision(2);
 	}
 
@@ -42,34 +51,46 @@ struct MyModule_2 : Module {
 		float sub_out = 0.f;
 		float in = inputs[AUDIO_IN_INPUT].getVoltage();
 
-		// creates the square wave out
-		if (in > 0) {
-			out = 4.f;
-		} else {
-			out = -4.f;
-		}
+		// // creates the square wave out. `audio_state` is remains true while the input is greater than 0
+		// if (in > 0) {
+		// 	out = 4.f;
+		// 	audio_state = true;
+		// } else {
+		// 	out = -4.f;
+		// 	audio_state = false;
+		// }
 
-		// creates the square wave sub_out
-		if (in > 0 && last_state == false) {
-			sub_out = 4.f;
-			last_state = true;
-		} else if (in > 0 && last_state == true) {
-			sub_out = -4.f;
-			last_state = false;
-		} else if (in <= 0 && last_state == true) {
-			sub_out = 4.f;
-		} else if (in <= 0 && last_state == false){
-		 	sub_out = -4.f;	
-		}
+		// // this creates the a clock divided output of the square wave. `sub_state_prev` is toggled based
+		// // on `audio_state_prev`, `audio_state` and `sub_state_prev`. This creates a clock divided output of bools
+		// if (audio_state_prev == false && audio_state == true && sub_state_prev == false) {
+		// 	sub_state = true;
+		// } else if (audio_state_prev == false && audio_state == true && sub_state_prev == true) {
+		// 	sub_state = false;
+		// }
 
+		// // this now creates a square wave output from the clock divided output which is effetively an octave
+		// // lower.
+		// if (sub_state) {
+		// 	sub_out = 4.f;
+		// } else {
+		// 	sub_out = -4.f;
+		// }
 
-		if (params[OVERDRIVE_AMOUNT_PARAM].getValue() > 0.5) {
-			outputs[AUDIO_OUT_OUTPUT].setVoltage(out);
-		} else {
-			outputs[AUDIO_OUT_OUTPUT].setVoltage(sub_out);
-		}
+		// // the `audio_state_prev` and `sub_state_prev` need to be updated at the end of the process.
+		// audio_state_prev = audio_state;
+		// sub_state_prev = sub_state;
+
+		// this is the overdrive effect
+		od.SetDrive(params[OVERDRIVE_AMOUNT_PARAM].getValue());
+
+		// if (params[OVERDRIVE_AMOUNT_PARAM].getValue() > 0.5) {
+		// 	outputs[AUDIO_OUT_OUTPUT].setVoltage(out);
+		// } else {
+		// 	outputs[AUDIO_OUT_OUTPUT].setVoltage(sub_out);
+		// }
 		
-
+		out = od.Process(in);
+		outputs[AUDIO_OUT_OUTPUT].setVoltage(out);
 	}
 };
 

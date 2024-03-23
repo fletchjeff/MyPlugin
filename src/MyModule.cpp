@@ -30,6 +30,8 @@ struct MyModule : Module {
 	float phase = 0.f;
 	float blinkPhase = 0.f;
 
+
+
 	void process(const ProcessArgs& args) override {
 		// Compute the frequency from the pitch parameter and input
 		float pitch = params[PITCH_PARAM].getValue();

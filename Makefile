@@ -1,9 +1,12 @@
 # If RACK_DIR is not defined when calling the Makefile, default to two directories above
 RACK_DIR ?= ../..
 
+
+DAISYSP_DIR = src/daisy
+
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS +=
-CFLAGS +=
+CFLAGS += $(DAISYSP_DIR)
 CXXFLAGS +=
 
 # Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
@@ -21,3 +24,4 @@ DISTRIBUTABLES += $(wildcard presets)
 
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
+
